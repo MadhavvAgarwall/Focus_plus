@@ -3,7 +3,7 @@
 # 🧠 Focus Plus - Smart Dashboard  
 ### AI-Powered EdTech Platform with Interactive 3D AI Professor  
 
-<img src="logo.png" alt=""/>
+<img src="logo.jpg" alt=""/>
 
 <br/>
 
