@@ -1,0 +1,2785 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Dashboard - MediaPipe Enhanced</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="theme-default">
+    <!-- Loading Screen -->
+    <div id="loadingScreen"
+        style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: linear-gradient(135deg, #193964, #9CCBD9); color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s ease;">
+        <div style="font-size: 48px; margin-bottom: 20px;">🧠</div>
+        <h2 style="margin-bottom: 10px;">Smart Dashboard</h2>
+        <div style="margin-bottom: 20px; text-align: center;">
+            <div style="font-size: 16px; opacity: 0.9;" id="loadingMessage">Loading MediaPipe Libraries...</div>
+            <div
+                style="width: 200px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 2px; margin: 15px auto; overflow: hidden;">
+                <div id="loadingBar"
+                    style="width: 0%; height: 100%; background: white; border-radius: 2px; transition: width 0.3s ease;">
+                </div>
+            </div>
+        </div>
+        <div style="font-size: 14px; opacity: 0.7;">Enhanced with AI-powered attention detection</div>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="dashboard" id="dashboard" style="display: none;">
+        <div class="board-container">
+            <!-- Notes -->
+            <div class="rectangle rectangle-hero notepad-container">
+                <div class="notepad-header">
+                    <div class="notepad-title">Session Notes</div>
+                    <div class="notepad-actions">
+                        <button onclick="exportNotes()" class="export-btn" title="Export Notes">📄 Export</button>
+                        <button onclick="clearNotes()" class="clear-btn" title="Clear Notes">🗑️ Clear</button>
+                    </div>
+                </div>
+                <textarea id="notepadTextarea" class="notepad-textarea" placeholder="Write your session notes here...
+
+💡 Tips:
+• Set your goals before starting
+• Track your progress during breaks  
+• Note down key insights
+• Plan next steps
+
+Your notes will be automatically exported after each session!" oninput="saveNotepadContent()"></textarea>
+                <div class="notepad-footer">
+                    <div class="notepad-status">Auto-saved • Export after session</div>
+                    <div id="notepadStatus" class="notepad-status">Ready</div>
+                </div>
+            </div>
+
+            <!-- Replace the rectangle-statistic section in your HTML with this -->
+            <div class="rectangle rectangle-statistic">
+                <div class="bot-professor-container">
+                    <div class="professor-header">
+                        <div class="section-title">🤖 Bot Professor</div>
+                        <button id="resetProfessor" class="professor-reset-btn">🔄 Reset</button>
+                    </div>
+
+                    <!-- 3D Bot Professor Character -->
+                    <div class="professor-character">
+                        <div class="robot-container">
+                            <div class="robot-body">
+                                <div class="robot-antenna">📡</div>
+                                <div class="robot-head">
+                                    <div class="robot-eyes">
+                                        <span class="eye left-eye">💡</span>
+                                        <span class="eye right-eye">💡</span>
+                                    </div>
+                                    <div class="robot-mouth">🔵</div>
+                                </div>
+                                <div class="robot-chest">⚙️</div>
+                            </div>
+                            <div class="robot-base">▬▬▬</div>
+                        </div>
+                        <div class="professor-status" id="professorStatus">Ready to learn! Upload a file or
+                            ask me anything.</div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="file-upload-section">
+                        <input type="file" id="professorFileInput" accept=".txt" style="display: none;">
+                        <button id="uploadFileBtn" class="professor-btn upload-btn">
+                            📄 Upload Text File
+                        </button>
+                        <div class="file-status" id="fileStatus"></div>
+                    </div>
+
+                    <!-- Popup Modal -->
+                    <div id="professorPopup" class="professor-popup">
+                        <div class="professor-popup-content">
+                            <span class="close-popup">&times;</span>
+
+                            <!-- Q&A Interface -->
+                            <div class="qa-interface">
+                                <textarea id="professorQuestion"
+                                    placeholder="Ask me about the content, or use #topic_name to learn a specific topic (e.g., #photosynthesis, #javascript, #history)..."
+                                    rows="3"></textarea>
+                                <button id="askProfessor" class="professor-btn ask-btn">🤔 Ask Professor</button>
+                            </div>
+
+                            <!-- Professor Response -->
+                            <div class="professor-response" id="professorResponse" style="display: none;">
+                                <div class="response-header">
+                                    <span class="professor-icon">🎓</span>
+                                    <span>Professor's Response:</span>
+                                </div>
+                                <div class="response-content" id="responseContent"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trigger Button -->
+                    <button id="openProfessorPopup" class="professor-btn">📚 Open Professor</button>
+
+                </div>
+            </div>
+
+            <!-- Analytics -->
+            <div class="rectangle rectangle-analytics">
+                <div class="analytics-header">
+                    <h3 class="analytics-title">Reports</h3>
+                    <button class="analytics-clear-btn" onclick="clearAnalytics()">Clear All</button>
+                </div>
+                <div id="analyticsContent">
+                    <div class="analytics-empty">
+                        <div class="analytics-empty-icon">📈</div>
+                        <div class="analytics-empty-text">
+                            Complete focus sessions to see saved reports with MediaPipe metrics here
+                        </div>
+                    </div>
+                    <div id="savedReports" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div class="rectangle rectangle-profile">
+                <div class="profile-card" id="profileCard"></div>
+            </div>
+
+            <!-- Main Focus Section -->
+            <div class="rectangle rectangle-study">
+                <div class="study-container">
+                    <div class="section-title">
+                        MediaPipe Attention Detection
+                        <div style="font-size: 12px; opacity: 0.7; font-weight: normal; margin-top: 5px;">
+                            Powered by Google MediaPipe Face Detection
+                        </div>
+                    </div>
+
+                    <div class="camera-view" id="cameraContainer"
+                        style="position: relative; width: 100%; height: 240px; background: rgba(0, 0, 0, 0.3); border: 2px dashed rgba(255, 255, 255, 0.3); border-radius: 16px; overflow: hidden; margin-bottom: 25px;">
+
+                        <video id="cameraVideo"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 16px; display: none;"
+                            autoplay muted playsinline></video>
+
+                        <canvas id="cameraCanvas"
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 16px; display: none;"></canvas>
+
+                        <div class="attention-overlay" id="attentionStatus" style="display: none;"></div>
+
+                        <div class="camera-content" id="cameraPlaceholder">
+                            <div style="font-size: 2rem; margin-bottom: 10px;">🎯</div>
+                            <div style="font-size: 16px; font-weight: bold;">AI Camera View</div>
+                            <div style="font-size: 14px; margin-top: 5px;" id="cameraStatus">MediaPipe face
+                                detection ready</div>
+                            <div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">Click Start to
+                                begin enhanced attention tracking</div>
+                        </div>
+                    </div>
+
+                    <div class="focus-timer">
+                        <div class="timer-display" id="timerDisplay">02:00</div>
+                        <div class="timer-controls">
+                            <button class="btn-timer" id="startBtn" onclick="startTimer()">
+                                <span>▶️ Start</span>
+                            </button>
+                            <button class="btn-timer" id="pauseBtn" onclick="pauseTimer()" disabled>
+                                <span>⏸️ Pause</span>
+                            </button>
+                            <button class="btn-timer" id="resetBtn" onclick="resetTimer()">
+                                <span>🔄 Reset</span>
+                            </button>
+                            <button class="btn-timer" onclick="openTimerSettings()">
+                                <span>⚙️ Settings</span>
+                            </button>
+                        </div>
+                        <div style="margin-top: 15px; text-align: center;">
+                            <div id="timerStatus" style="font-size: 14px; opacity: 0.8;">
+                                Ready to start • Press Space to begin
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Theme Customization Rectangle -->
+            <div class="rectangle rectangle-theme">
+                <div class="section-title">Themes</div>
+                <div class="theme-selector">
+                    <div class="theme-option theme-default active" data-theme="theme-default"
+                        onclick="changeTheme(this)" title="Default"></div>
+                    <div class="theme-option theme-pinkorange" data-theme="theme-pinkorange" onclick="changeTheme(this)"
+                        title="Pink Orange"></div>
+                    <div class="theme-option theme-olive" data-theme="theme-olive" onclick="changeTheme(this)"
+                        title="Olive Green"></div>
+                    <div class="theme-option theme-dark" data-theme="theme-dark" onclick="changeTheme(this)"
+                        title="Dark"></div>
+                </div>
+            </div>
+
+            <!-- Theme -->
+            <!-- <div class="rectangle rectangle-theme">
+                <div class="section-title">Appearance</div>
+                <div class="theme-selector">
+                    <div class="theme-option theme-default active" data-theme="theme-default"
+                        onclick="changeTheme(this)" title="Ocean Blue (Default)">
+                        <div style="font-size: 12px; margin-top: 5px;">Ocean</div>
+                    </div>
+                    <div class="theme-option theme-pinkorange" data-theme="theme-pinkorange" onclick="changeTheme(this)"
+                        title="Sunset Orange">
+                        <div style="font-size: 12px; margin-top: 5px;">Sunset</div>
+                    </div>
+                    <div class="theme-option theme-olive" data-theme="theme-olive" onclick="changeTheme(this)"
+                        title="Nature Green">
+                        <div style="font-size: 12px; margin-top: 5px;">Nature</div>
+                    </div>
+                    <div class="theme-option theme-dark" data-theme="theme-dark" onclick="changeTheme(this)"
+                        title="Dark Mode">
+                        <div style="font-size: 12px; margin-top: 5px;">Dark</div>
+                    </div>
+                </div>
+            </div> -->
+
+            <!-- Tasks -->
+            <div class="rectangle rectangle-tasks">
+                <div class="task-scheduler">
+                    <div class="task-header">
+                        <div class="section-title">Task Scheduler</div>
+                        <button class="btn-add-task" onclick="openTaskModal()">+ Add Task</button>
+                    </div>
+                    <ul id="task-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal" id="taskModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('taskModal')">&times;</button>
+            <h3>📝 Add New Task</h3>
+            <div class="form-group">
+                <label for="taskName">Task Name</label>
+                <input type="text" id="taskName" placeholder="Enter task description" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label for="taskDate">Due Date</label>
+                <input type="date" id="taskDate">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-auth btn-secondary" onclick="closeModal('taskModal')">Cancel</button>
+                <button class="btn-auth" onclick="addTask()">Add Task</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="timerModal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('timerModal')">&times;</button>
+            <h3>⏱️ Timer Settings</h3>
+            <div class="form-group">
+                <label for="timerHours">Hours (0-24)</label>
+                <input type="number" id="timerHours" min="0" max="24" value="0">
+            </div>
+            <div class="form-group">
+                <label for="timerMinutes">Minutes (1-59)</label>
+                <input type="number" id="timerMinutes" min="1" max="59" value="2">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-auth btn-secondary" onclick="closeModal('timerModal')">Cancel</button>
+                <button class="btn-auth" onclick="setCustomTimer()">Set Timer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="reportModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <button class="close-btn" onclick="closeModal('reportModal')">&times;</button>
+            <h3 id="reportTitle">📊 Session Report</h3>
+            <div id="reportDetails"></div>
+            <div class="modal-buttons">
+                <button class="btn-auth" onclick="closeModal('reportModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Indicator -->
+    <div id="systemStatus"
+        style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.8); color: white; padding: 10px 15px; border-radius: 20px; font-size: 12px; z-index: 999;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <div id="statusIndicator" style="width: 8px; height: 8px; border-radius: 50%; background: #4CAF50;"></div>
+            <div id="statusText">System Ready</div>
+        </div>
+    </div>
+
+    <!-- MediaPipe Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js"
+        crossorigin="anonymous"></script>
+
+    <!-- All JavaScript Code -->
+    <script>
+        // ========== CONFIGURATION ==========
+        const CONFIG = {
+            MEDIAPIPE: {
+                FACE_DETECTION_OPTIONS: {
+                    model: 'short',
+                    minDetectionConfidence: 0.5
+                },
+                CAMERA_OPTIONS: {
+                    width: 640,
+                    height: 480,
+                    facingMode: 'user'
+                }
+            },
+            ATTENTION: {
+                FOCUS_THRESHOLD: 0.54,
+                SMOOTHING_WINDOW: 10,
+                PROCESSING_FPS: 15,
+                FOCUS_BOX_SIZE: 0.6
+            },
+            STORAGE: {
+                USER_KEY: 'currentUser',
+                THEME_KEY: 'selectedTheme',
+                TASKS_KEY: 'tasks',
+                REPORTS_KEY: 'savedReports',
+                SESSION_COUNTER_KEY: 'sessionCounter',
+                MAX_SAVED_REPORTS: 50
+            },
+            MESSAGES: {
+                CAMERA_DENIED: 'Camera permission denied. Please allow camera access and try again.',
+                CAMERA_NOT_FOUND: 'No camera found. Please connect a camera and try again.',
+                CAMERA_BUSY: 'Camera is being used by another application.',
+                BROWSER_NOT_SUPPORTED: 'Your browser does not support the required features.',
+                TIMER_INVALID: 'Please set a valid time between 1 minute and 24 hours.',
+                TASK_INCOMPLETE: 'Please enter both task name and date.',
+                TASK_CONFIRM_DELETE: 'Are you sure you want to remove this task?',
+                LOGOUT_CONFIRM: 'Are you sure you want to logout?'
+            },
+            ASSESSMENT: {
+                EXCELLENT: 90,
+                GOOD: 80,
+                MODERATE: 70,
+                BELOW_AVERAGE: 60,
+                POOR: 0
+            },
+            ANALYTICS: {
+                REPORT_CATEGORIES: {
+                    EXCELLENT: { color: '#4CAF50', icon: '🏆' },
+                    GOOD: { color: '#8BC34A', icon: '✅' },
+                    MODERATE: { color: '#FFC107', icon: '⚠️' },
+                    BELOW_AVERAGE: { color: '#FF9800', icon: '📉' },
+                    POOR: { color: '#F44336', icon: '❌' }
+                }
+            }
+        };
+
+        // ========== GLOBAL VARIABLES ==========
+        let currentUser = null;
+        let timerInterval = null;
+        let timerSeconds = 120;
+        let originalTimerSeconds = 120;
+        let isTimerRunning = false;
+        let sessionCounter = 0;
+        let notepadContent = '';
+
+        // MediaPipe Variables
+        let faceDetection = null;
+        let camera = null;
+        let videoStream = null;
+        let detectionRunning = false;
+        let canvas = null;
+        let ctx = null;
+
+        // Session Statistics
+        let sessionStats = {
+            totalFrames: 0,
+            focusedFrames: 0,
+            distractedFrames: 0,
+            noFaceFrames: 0,
+            sessionStart: null,
+            currentState: null,
+            stateStartTime: null
+        };
+
+        // Attention Detection Variables
+        let attentionHistory = [];
+        let currentYaw = 0;
+        let currentPitch = 0;
+        let consecutiveNoFaceFrames = 0;
+        let isProcessing = false;
+
+        // ========== MEDIAPIPE ATTENTION DETECTOR ==========
+        class WebAttentionDetector {
+            constructor() {
+                this.focusThreshold = CONFIG.ATTENTION.FOCUS_THRESHOLD;
+                this.smoothingWindow = CONFIG.ATTENTION.SMOOTHING_WINDOW;
+                this.centerRegion = {
+                    x: (1 - CONFIG.ATTENTION.FOCUS_BOX_SIZE) / 2,
+                    y: (1 - CONFIG.ATTENTION.FOCUS_BOX_SIZE) / 2,
+                    width: CONFIG.ATTENTION.FOCUS_BOX_SIZE,
+                    height: CONFIG.ATTENTION.FOCUS_BOX_SIZE
+                };
+                this.maxNoFaceFrames = 30;
+                this.onResults = this.onResults.bind(this);
+            }
+
+            async initializeMediaPipe(videoElement) {
+                try {
+                    if (typeof FaceDetection === 'undefined') {
+                        throw new Error('MediaPipe FaceDetection not available');
+                    }
+
+                    faceDetection = new FaceDetection({
+                        locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/${file}`
+                    });
+
+                    faceDetection.setOptions(CONFIG.MEDIAPIPE.FACE_DETECTION_OPTIONS);
+                    faceDetection.onResults(this.onResults);
+
+                    if (typeof Camera !== 'undefined') {
+                        camera = new Camera(videoElement, {
+                            onFrame: async () => {
+                                if (faceDetection && !isProcessing) {
+                                    await faceDetection.send({ image: videoElement });
+                                }
+                            },
+                            width: CONFIG.MEDIAPIPE.CAMERA_OPTIONS.width,
+                            height: CONFIG.MEDIAPIPE.CAMERA_OPTIONS.height
+                        });
+                    }
+
+                    return true;
+                } catch (error) {
+                    console.error('MediaPipe initialization failed:', error);
+                    return false;
+                }
+            }
+
+            async startCamera() {
+                try {
+                    if (camera) {
+                        await camera.start();
+                        return true;
+                    }
+                    return false;
+                } catch (error) {
+                    console.error('Failed to start camera:', error);
+                    return false;
+                }
+            }
+
+            stopCamera() {
+                try {
+                    if (camera) camera.stop();
+                    if (faceDetection) {
+                        faceDetection.close();
+                        faceDetection = null;
+                    }
+                } catch (error) {
+                    console.error('Error stopping camera:', error);
+                }
+            }
+
+            onResults(results) {
+                if (isProcessing) return;
+                isProcessing = true;
+
+                try {
+                    if (results.detections && results.detections.length > 0) {
+                        consecutiveNoFaceFrames = 0;
+                        const detection = results.detections[0];
+
+                        const faceData = this.extractFaceData(detection);
+                        const attentionData = this.calculateAttentionScore(faceData);
+                        const smoothedData = this.smoothPredictions(attentionData);
+                        const isFocused = this.isFocused(smoothedData);
+
+                        updateSessionStats(isFocused ? 'focused' : 'distracted');
+                        updateAttentionUI(isFocused, smoothedData);
+                        this.drawOverlay(results, smoothedData, isFocused);
+                    } else {
+                        consecutiveNoFaceFrames++;
+                        if (consecutiveNoFaceFrames > this.maxNoFaceFrames) {
+                            this.handleNoFace();
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error in results handler:', error);
+                } finally {
+                    isProcessing = false;
+                }
+            }
+
+            extractFaceData(detection) {
+                const bbox = detection.boundingBox;
+                const keypoints = detection.keypoints || [];
+
+                let yaw = 0, pitch = 0;
+                if (keypoints.length >= 6) {
+                    try {
+                        const rightEye = keypoints[0];
+                        const leftEye = keypoints[1];
+                        const noseTip = keypoints[2];
+
+                        if (rightEye && leftEye && noseTip) {
+                            const eyeMidX = (rightEye.x + leftEye.x) / 2;
+                            const noseOffsetX = noseTip.x - eyeMidX;
+                            yaw = Math.max(-50, Math.min(50, noseOffsetX * 180));
+
+                            const eyeMidY = (rightEye.y + leftEye.y) / 2;
+                            const noseOffsetY = noseTip.y - eyeMidY;
+                            pitch = Math.max(-30, Math.min(30, noseOffsetY * 120));
+                        }
+                    } catch (error) {
+                        console.warn('Error calculating head rotation:', error);
+                    }
+                }
+
+                currentYaw = yaw;
+                currentPitch = pitch;
+
+                return {
+                    x: bbox.xCenter,
+                    y: bbox.yCenter,
+                    width: bbox.width,
+                    height: bbox.height,
+                    confidence: detection.score?.[0] || 0.8,
+                    yaw: yaw,
+                    pitch: pitch
+                };
+            }
+
+            calculateAttentionScore(faceData) {
+                const isLookingStraight = Math.abs(faceData.yaw) <= 15 && Math.abs(faceData.pitch) <= 10;
+
+                let score = 1.0;
+                if (!isLookingStraight) {
+                    score = 0.1;
+                } else {
+                    const distanceFromCenter = Math.sqrt(
+                        Math.pow(faceData.x - 0.5, 2) + Math.pow(faceData.y - 0.5, 2)
+                    );
+                    const maxDistance = Math.sqrt(
+                        Math.pow(this.centerRegion.width / 2, 2) + Math.pow(this.centerRegion.height / 2, 2)
+                    );
+                    const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1.0);
+                    score = Math.exp(-normalizedDistance * 1.5);
+
+                    if (faceData.confidence > 0.8) score *= 1.1;
+                }
+
+                return {
+                    score: Math.max(0.0, Math.min(1.0, score)),
+                    isLookingStraight: isLookingStraight,
+                    yaw: faceData.yaw,
+                    pitch: faceData.pitch
+                };
+            }
+
+            smoothPredictions(attentionData) {
+                attentionHistory.push(attentionData.score);
+                if (attentionHistory.length > this.smoothingWindow) {
+                    attentionHistory.shift();
+                }
+
+                const weights = attentionHistory.map((_, i) =>
+                    Math.exp((i - attentionHistory.length + 1) / attentionHistory.length)
+                );
+                const weightSum = weights.reduce((a, b) => a + b, 0);
+                const weightedSum = attentionHistory.reduce((sum, score, i) => sum + score * weights[i], 0);
+
+                return {
+                    score: weightedSum / weightSum,
+                    isLookingStraight: attentionData.isLookingStraight,
+                    yaw: attentionData.yaw,
+                    pitch: attentionData.pitch
+                };
+            }
+
+            isFocused(attentionData) {
+                return attentionData.score >= this.focusThreshold && attentionData.isLookingStraight;
+            }
+
+            handleNoFace() {
+                updateSessionStats('noFace');
+                updateAttentionUI(false, { score: 0, isLookingStraight: false, yaw: 0, pitch: 0 }, true);
+
+                if (ctx) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.9)';
+                    ctx.fillRect(10, 10, 220, 50);
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.fillText('No Face Detected', 20, 40);
+                }
+            }
+
+            drawOverlay(results, attentionData, isFocused) {
+                if (!ctx || !results.image) return;
+
+                try {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
+
+                    // Draw focus area
+                    const centerX = canvas.width * this.centerRegion.x;
+                    const centerY = canvas.height * this.centerRegion.y;
+                    const centerWidth = canvas.width * this.centerRegion.width;
+                    const centerHeight = canvas.height * this.centerRegion.height;
+
+                    ctx.strokeStyle = isFocused ? 'rgba(0, 255, 0, 0.7)' : 'rgba(255, 165, 0, 0.7)';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 8]);
+                    ctx.strokeRect(centerX, centerY, centerWidth, centerHeight);
+                    ctx.setLineDash([]);
+
+                    // Draw face detections
+                    if (results.detections && results.detections.length > 0) {
+                        results.detections.forEach((detection) => {
+                            const bbox = detection.boundingBox;
+                            const x = bbox.xCenter * canvas.width - (bbox.width * canvas.width) / 2;
+                            const y = bbox.yCenter * canvas.height - (bbox.height * canvas.height) / 2;
+                            const width = bbox.width * canvas.width;
+                            const height = bbox.height * canvas.height;
+
+                            ctx.strokeStyle = isFocused ? 'rgba(0, 255, 0, 0.8)' : 'rgba(255, 0, 0, 0.8)';
+                            ctx.lineWidth = 3;
+                            ctx.strokeRect(x, y, width, height);
+
+                            // Draw center point
+                            const centerX = bbox.xCenter * canvas.width;
+                            const centerY = bbox.yCenter * canvas.height;
+                            ctx.fillStyle = isFocused ? 'rgba(0, 255, 0, 0.9)' : 'rgba(255, 0, 0, 0.9)';
+                            ctx.beginPath();
+                            ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                    }
+
+                    // Draw overall indicator
+                    const indicatorColor = isFocused ? 'rgba(0, 255, 0, 0.05)' : 'rgba(255, 0, 0, 0.05)';
+                    ctx.fillStyle = indicatorColor;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                } catch (error) {
+                    console.error('Error drawing overlay:', error);
+                }
+            }
+
+            getPerformanceMetrics() {
+                const focusedFrames = attentionHistory.filter(score => score >= this.focusThreshold).length;
+                const detectionRate = attentionHistory.length > 0 ? (focusedFrames / attentionHistory.length) * 100 : 0;
+
+                return {
+                    currentYaw: currentYaw,
+                    currentPitch: currentPitch,
+                    detectionRate: detectionRate,
+                    mediaPipeActive: faceDetection !== null
+                };
+            }
+
+            isInitialized() {
+                return faceDetection !== null;
+            }
+        }
+
+        // ========== GLOBAL DETECTOR INSTANCE ==========
+        const attentionDetector = new WebAttentionDetector();
+
+        // ========== CAMERA FUNCTIONS ==========
+        async function initCamera() {
+            if (detectionRunning) return true;
+
+            const videoElement = document.getElementById('cameraVideo');
+            canvas = document.getElementById('cameraCanvas');
+            const placeholder = document.getElementById('cameraPlaceholder');
+            const cameraStatus = document.getElementById('cameraStatus');
+
+            console.log('Starting camera initialization...');
+
+            if (!navigator.mediaDevices?.getUserMedia) {
+                alert(CONFIG.MESSAGES.BROWSER_NOT_SUPPORTED);
+                return false;
+            }
+
+            if (typeof FaceDetection === 'undefined') {
+                if (cameraStatus) cameraStatus.textContent = 'MediaPipe libraries not loaded';
+                alert('MediaPipe face detection libraries failed to load. Please refresh the page.');
+                return false;
+            }
+
+            try {
+                // Update UI
+                if (placeholder) placeholder.style.display = 'none';
+                if (videoElement) videoElement.style.display = 'block';
+                if (canvas) {
+                    canvas.style.display = 'block';
+                    canvas.width = CONFIG.MEDIAPIPE.CAMERA_OPTIONS.width;
+                    canvas.height = CONFIG.MEDIAPIPE.CAMERA_OPTIONS.height;
+                    ctx = canvas.getContext('2d');
+                }
+
+                // Get camera stream
+                const constraints = {
+                    video: {
+                        width: { ideal: CONFIG.MEDIAPIPE.CAMERA_OPTIONS.width },
+                        height: { ideal: CONFIG.MEDIAPIPE.CAMERA_OPTIONS.height },
+                        facingMode: CONFIG.MEDIAPIPE.CAMERA_OPTIONS.facingMode
+                    },
+                    audio: false
+                };
+
+                videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = videoStream;
+
+                // Wait for video to be ready
+                await new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = async () => {
+                        try {
+                            await videoElement.play();
+                            resolve();
+                        } catch (error) {
+                            reject(error);
+                        }
+                    };
+                    videoElement.onerror = reject;
+                    setTimeout(() => reject(new Error('Video loading timeout')), 10000);
+                });
+
+                // Initialize MediaPipe
+                const mediaPipeSuccess = await attentionDetector.initializeMediaPipe(videoElement);
+                if (!mediaPipeSuccess) {
+                    throw new Error('MediaPipe initialization failed');
+                }
+
+                // Start MediaPipe processing
+                const cameraStarted = await attentionDetector.startCamera();
+                if (!cameraStarted) {
+                    throw new Error('MediaPipe camera start failed');
+                }
+
+                detectionRunning = true;
+                if (cameraStatus) cameraStatus.textContent = 'Camera active - detecting faces';
+
+                console.log('Camera initialization completed successfully');
+                return true;
+
+            } catch (error) {
+                console.error('Camera initialization failed:', error);
+
+                // Reset UI on failure
+                if (placeholder) {
+                    placeholder.style.display = 'flex';
+                    placeholder.innerHTML = '<div style="text-align: center; color: #ff6b6b;"><div style="font-size: 2rem; margin-bottom: 10px;">⚠️</div><div>Camera Failed</div><div style="font-size: 12px; margin-top: 5px;">' + error.message + '</div></div>';
+                }
+                if (videoElement) videoElement.style.display = 'none';
+                if (canvas) canvas.style.display = 'none';
+
+                // Cleanup
+                if (videoStream) {
+                    videoStream.getTracks().forEach(track => track.stop());
+                    videoStream = null;
+                }
+
+                // Show error message
+                let errorMessage = CONFIG.MESSAGES.CAMERA_DENIED;
+                if (error.name === 'NotAllowedError') {
+                    errorMessage = CONFIG.MESSAGES.CAMERA_DENIED;
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage = CONFIG.MESSAGES.CAMERA_NOT_FOUND;
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage = CONFIG.MESSAGES.CAMERA_BUSY;
+                }
+
+                alert(errorMessage);
+                return false;
+            }
+        }
+
+        function stopCamera() {
+            detectionRunning = false;
+
+            if (attentionDetector) {
+                attentionDetector.stopCamera();
+            }
+
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+
+            const video = document.getElementById('cameraVideo');
+            const placeholder = document.getElementById('cameraPlaceholder');
+            const statusElement = document.getElementById('attentionStatus');
+
+            if (video) {
+                video.srcObject = null;
+                video.pause();
+                video.style.display = 'none';
+            }
+            if (canvas) {
+                canvas.style.display = 'none';
+                if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            if (statusElement) statusElement.style.display = 'none';
+            if (placeholder) {
+                placeholder.style.display = 'flex';
+                placeholder.innerHTML = '<div style="text-align: center; opacity: 0.7;"><div style="font-size: 2rem; margin-bottom: 10px;">🎯</div><div style="font-size: 16px; font-weight: bold;">AI Camera View</div><div style="font-size: 14px; margin-top: 5px;">MediaPipe face detection ready</div><div style="font-size: 12px; opacity: 0.8; margin-top: 8px;">Click Start to begin enhanced attention tracking</div></div>';
+            }
+
+            console.log('Camera stopped');
+        }
+
+        // ========== SESSION STATS FUNCTIONS ==========
+        function updateSessionStats(state) {
+            sessionStats.totalFrames++;
+
+            if (state === 'focused') {
+                sessionStats.focusedFrames++;
+            } else if (state === 'distracted') {
+                sessionStats.distractedFrames++;
+            } else if (state === 'noFace') {
+                sessionStats.noFaceFrames++;
+            }
+
+            const currentTime = new Date();
+            if (sessionStats.currentState !== state) {
+                sessionStats.currentState = state;
+                sessionStats.stateStartTime = currentTime;
+            }
+
+            if (!sessionStats.sessionStart) {
+                sessionStats.sessionStart = currentTime;
+            }
+
+            displaySessionStats();
+        }
+
+        function updateAttentionUI(isFocused, attentionData, noFace = false) {
+            const statusElement = document.getElementById('attentionStatus');
+            if (!statusElement) return;
+
+            if (noFace) {
+                statusElement.style.display = 'block';
+                statusElement.textContent = 'No Face Detected';
+                statusElement.className = 'attention-overlay';
+                statusElement.style.background = 'rgba(255, 255, 0, 0.9)';
+                statusElement.style.color = 'black';
+                return;
+            }
+
+            const focusPercent = Math.round(attentionData.score * 100);
+            statusElement.style.display = 'block';
+
+            let statusText = `${isFocused ? 'Focused' : 'Distracted'} (${focusPercent}%)`;
+            if (!attentionData.isLookingStraight) {
+                const yawAbs = Math.abs(attentionData.yaw);
+                const pitchAbs = Math.abs(attentionData.pitch);
+                let direction = "";
+                if (yawAbs > 20) direction += attentionData.yaw > 0 ? "Right " : "Left ";
+                if (pitchAbs > 15) direction += attentionData.pitch > 0 ? "Down" : "Up";
+                statusText += ` - ${direction.trim() || "Off-Center"}`;
+            }
+
+            statusElement.textContent = statusText;
+            statusElement.className = 'attention-overlay ' + (isFocused ? 'attention-focused' : 'attention-distracted');
+
+            if (isFocused) {
+                statusElement.style.background = 'rgba(0, 255, 0, 0.9)';
+                statusElement.style.color = 'white';
+            } else {
+                statusElement.style.background = 'rgba(255, 0, 0, 0.9)';
+                statusElement.style.color = 'white';
+            }
+        }
+
+        function displaySessionStats() {
+            const statsContent = document.getElementById('statsContent');
+            if (!statsContent || sessionStats.totalFrames === 0) {
+                if (statsContent) {
+                    statsContent.innerHTML = '<div style="text-align: center; opacity: 0.7;"><div style="font-size: 2rem; margin-bottom: 10px;">📊</div><div>Camera not active or no data yet</div></div>';
+                }
+                return;
+            }
+
+            const focusPercentage = ((sessionStats.focusedFrames / sessionStats.totalFrames) * 100).toFixed(1);
+            const distractedPercentage = ((sessionStats.distractedFrames / sessionStats.totalFrames) * 100).toFixed(1);
+            const sessionDuration = sessionStats.sessionStart ? ((new Date() - sessionStats.sessionStart) / 1000 / 60).toFixed(1) : 0;
+
+            let assessment = 'Gathering data...';
+            let assessmentColor = '#666';
+
+            if (sessionStats.totalFrames > 30) {
+                const focusNum = parseFloat(focusPercentage);
+                if (focusNum >= CONFIG.ASSESSMENT.EXCELLENT) {
+                    assessment = 'Excellent focus! 🏆';
+                    assessmentColor = '#4CAF50';
+                } else if (focusNum >= CONFIG.ASSESSMENT.GOOD) {
+                    assessment = 'Good focus maintained ✅';
+                    assessmentColor = '#8BC34A';
+                } else if (focusNum >= CONFIG.ASSESSMENT.MODERATE) {
+                    assessment = 'Moderate focus ⚠️';
+                    assessmentColor = '#FFC107';
+                } else if (focusNum >= CONFIG.ASSESSMENT.BELOW_AVERAGE) {
+                    assessment = 'Below average focus 📉';
+                    assessmentColor = '#FF9800';
+                } else {
+                    assessment = 'Poor focus - adjust position ❌';
+                    assessmentColor = '#F44336';
+                }
+            }
+
+            statsContent.innerHTML = `
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value" style="font-size: 2.5rem; font-weight: bold; color: #4CAF50;">${focusPercentage}%</div>
+                        <div class="stat-label" style="font-size: 16px;">Focused</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" style="font-size: 2.5rem; font-weight: bold; color: #FF5722;">${distractedPercentage}%</div>
+                        <div class="stat-label" style="font-size: 16px;">Distracted</div>
+                    </div>
+                </div>
+                <div class="stats-row">
+                    <div class="stat-box">
+                        <div class="stat-value" style="font-size: 2.2rem; font-weight: bold;">${sessionDuration}</div>
+                        <div class="stat-label" style="font-size: 16px;">Minutes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" style="font-size: 2.2rem; font-weight: bold;">${sessionStats.totalFrames}</div>
+                        <div class="stat-label" style="font-size: 16px;">Frames</div>
+                    </div>
+                </div>
+                <div class="assessment-text" style="font-size: 18px; font-weight: bold; margin-top: 15px; color: ${assessmentColor};">
+                    ${assessment}
+                    ${sessionStats.noFaceFrames > sessionStats.totalFrames * 0.2 ? '<br><small style="font-size: 14px; color: #FF9800;">⚠️ Face detection issues detected</small>' : ''}
+                </div>
+            `;
+        }
+
+        function resetSessionStats() {
+            sessionStats = {
+                totalFrames: 0,
+                focusedFrames: 0,
+                distractedFrames: 0,
+                noFaceFrames: 0,
+                sessionStart: null,
+                currentState: null,
+                stateStartTime: null
+            };
+            attentionHistory = [];
+            consecutiveNoFaceFrames = 0;
+            displaySessionStats();
+        }
+
+        // ========== TIMER FUNCTIONS ==========
+        async function startTimer() {
+            if (isTimerRunning) return;
+
+            timerSeconds = originalTimerSeconds;
+            updateTimerDisplay();
+            isTimerRunning = true;
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('resetBtn').disabled = false;
+
+            resetSessionStats();
+
+            // Try to initialize camera
+            let cameraReady = false;
+            if (typeof FaceDetection !== 'undefined') {
+                try {
+                    cameraReady = await initCamera();
+                } catch (error) {
+                    console.error('Camera initialization failed:', error);
+                }
+            }
+
+            if (!cameraReady) {
+                const continueWithoutCamera = confirm('Camera initialization failed or MediaPipe libraries not available. Would you like to continue with timer only (without attention detection)?');
+                if (!continueWithoutCamera) {
+                    isTimerRunning = false;
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('pauseBtn').disabled = true;
+                    return;
+                }
+            }
+
+            // Start countdown
+            timerInterval = setInterval(() => {
+                if (timerSeconds > 0) {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    displaySessionStats();
+                } else {
+                    timerComplete();
+                }
+            }, 1000);
+
+            console.log('Timer started');
+        }
+
+        function pauseTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            isTimerRunning = false;
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerSeconds = originalTimerSeconds;
+            updateTimerDisplay();
+
+            if (detectionRunning) {
+                stopCamera();
+            }
+            resetSessionStats();
+
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+        }
+
+        function updateTimerDisplay() {
+            const hours = Math.floor(timerSeconds / 3600);
+            const minutes = Math.floor((timerSeconds % 3600) / 60);
+            const seconds = timerSeconds % 60;
+
+            let display = '';
+            if (hours > 0) {
+                display += String(hours).padStart(2, '0') + ':';
+            }
+            display += String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+            const timerDisplay = document.getElementById('timerDisplay');
+            if (timerDisplay) {
+                timerDisplay.textContent = display;
+            }
+        }
+
+        function timerComplete() {
+            pauseTimer();
+            sessionCounter++;
+            localStorage.setItem(CONFIG.STORAGE.SESSION_COUNTER_KEY, sessionCounter.toString());
+
+            const finalReport = generateFinalReport();
+            saveReportToAnalytics(finalReport);
+
+            if (notepadContent && notepadContent.trim()) {
+                exportNotes();
+            }
+
+            setTimeout(() => {
+                if (detectionRunning) {
+                    stopCamera();
+                }
+            }, 3000);
+
+            showSessionCompleteNotification();
+        }
+
+        function generateFinalReport() {
+            const focusPercentage = sessionStats.totalFrames > 0 ? ((sessionStats.focusedFrames / sessionStats.totalFrames) * 100).toFixed(1) : 0;
+            const duration = sessionStats.sessionStart ? ((Date.now() - sessionStats.sessionStart) / 1000 / 60).toFixed(1) : ((originalTimerSeconds - timerSeconds) / 60).toFixed(1);
+
+            let assessment = 'Session completed';
+            let assessmentCategory = 'MODERATE';
+
+            if (sessionStats.totalFrames > 0) {
+                const focus = parseFloat(focusPercentage);
+                if (focus >= CONFIG.ASSESSMENT.EXCELLENT) {
+                    assessment = 'Excellent session';
+                    assessmentCategory = 'EXCELLENT';
+                } else if (focus >= CONFIG.ASSESSMENT.GOOD) {
+                    assessment = 'Good session';
+                    assessmentCategory = 'GOOD';
+                } else if (focus >= CONFIG.ASSESSMENT.MODERATE) {
+                    assessment = 'Moderate session';
+                    assessmentCategory = 'MODERATE';
+                } else if (focus >= CONFIG.ASSESSMENT.BELOW_AVERAGE) {
+                    assessment = 'Below average session';
+                    assessmentCategory = 'BELOW_AVERAGE';
+                } else {
+                    assessment = 'Poor session';
+                    assessmentCategory = 'POOR';
+                }
+            }
+
+            const detectorMetrics = attentionDetector ? attentionDetector.getPerformanceMetrics() : null;
+
+            return {
+                sessionId: sessionCounter,
+                timestamp: new Date().toISOString(),
+                userId: currentUser ? currentUser.id : 'guest',
+                duration: parseFloat(duration),
+                completed: timerSeconds <= 0,
+                focusPercentage: sessionStats.totalFrames > 0 ? parseFloat(focusPercentage) : null,
+                totalFrames: sessionStats.totalFrames,
+                focusedFrames: sessionStats.focusedFrames,
+                distractedFrames: sessionStats.distractedFrames,
+                noFaceFrames: sessionStats.noFaceFrames,
+                assessment,
+                assessmentCategory,
+                detectorMetrics
+            };
+        }
+
+        function saveReportToAnalytics(report) {
+            try {
+                let savedReports = JSON.parse(localStorage.getItem(CONFIG.STORAGE.REPORTS_KEY) || '[]');
+                savedReports.unshift(report);
+                if (savedReports.length > CONFIG.STORAGE.MAX_SAVED_REPORTS) {
+                    savedReports = savedReports.slice(0, CONFIG.STORAGE.MAX_SAVED_REPORTS);
+                }
+                localStorage.setItem(CONFIG.STORAGE.REPORTS_KEY, JSON.stringify(savedReports));
+                loadAnalyticsReports();
+            } catch (error) {
+                console.error('Failed to save report:', error);
+            }
+        }
+
+        function showSessionCompleteNotification() {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #4CAF50, #45a049);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 1000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                font-weight: bold;
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px;">🎉</span>
+                    <div>
+                        <div>Session Complete!</div>
+                        <div style="font-size: 12px; opacity: 0.9;">Report saved to Analytics</div>
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 4000);
+        }
+
+        // ========== TIMER SETTINGS ==========
+        function openTimerSettings() {
+            const hours = Math.floor(originalTimerSeconds / 3600);
+            const minutes = Math.floor((originalTimerSeconds % 3600) / 60);
+            document.getElementById('timerHours').value = hours;
+            document.getElementById('timerMinutes').value = minutes;
+            document.getElementById('timerModal').style.display = 'flex';
+        }
+
+        function setCustomTimer() {
+            const hours = parseInt(document.getElementById('timerHours').value) || 0;
+            const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
+            const totalSeconds = (hours * 3600) + (minutes * 60);
+
+            if (totalSeconds <= 0) {
+                alert(CONFIG.MESSAGES.TIMER_INVALID);
+                return;
+            }
+
+            if (totalSeconds > 86400) {
+                alert("Maximum timer duration is 24 hours.");
+                return;
+            }
+
+            originalTimerSeconds = totalSeconds;
+            timerSeconds = totalSeconds;
+            updateTimerDisplay();
+            closeModal('timerModal');
+        }
+
+        // ========== NOTEPAD FUNCTIONS ==========
+
+        function initializeNotepad() {
+            const savedNotes = localStorage.getItem('notepadContent');
+            if (savedNotes) {
+                notepadContent = savedNotes;
+                const textarea = document.getElementById('notepadTextarea');
+                if (textarea) {
+                    textarea.value = notepadContent;
+                }
+            }
+        }
+
+        function saveNotepadContent() {
+            const textarea = document.getElementById('notepadTextarea');
+            if (textarea) {
+                notepadContent = textarea.value;
+                localStorage.setItem('notepadContent', notepadContent);
+            }
+        }
+
+        function exportNotes() {
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const filename = `notes-${timestamp}.txt`;
+
+            const blob = new Blob([notepadContent || 'No notes to export'], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function clearNotes() {
+            if (confirm('Are you sure you want to clear all notes? This action cannot be undone.')) {
+                notepadContent = '';
+                const textarea = document.getElementById('notepadTextarea');
+                if (textarea) {
+                    textarea.value = '';
+                }
+                localStorage.removeItem('notepadContent');
+
+                const status = document.getElementById('notepadStatus');
+                if (status) {
+                    status.textContent = 'Notes cleared';
+                    setTimeout(() => status.textContent = 'Ready', 2000);
+                }
+            }
+        }
+
+        // ========== AUTHENTICATION ==========
+        function checkAuth() {
+            const user = localStorage.getItem(CONFIG.STORAGE.USER_KEY);
+            if (user) {
+                try {
+                    currentUser = JSON.parse(user);
+
+                    // Check session validity if exists
+                    if (currentUser.sessionExpires && Date.now() > currentUser.sessionExpires) {
+                        localStorage.removeItem(CONFIG.STORAGE.USER_KEY);
+                        window.location.href = 'index.html';
+                        return;
+                    }
+
+                    updateProfileCard();
+                } catch (error) {
+                    console.error('Error parsing user data:', error);
+                    localStorage.removeItem(CONFIG.STORAGE.USER_KEY);
+                    window.location.href = 'index.html';
+                }
+            } else {
+                // No user found - redirect to login
+                console.log('No authenticated user found. Redirecting to login...');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function updateProfileCard() {
+            const profileCard = document.getElementById('profileCard');
+            if (!profileCard) return;
+
+            const initials = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+            profileCard.innerHTML = `
+                <div class="profile-avatar">${initials}</div>
+                <div class="profile-info">
+                    <p><strong>${currentUser.name}</strong></p>
+                    <p>ID: ${currentUser.id}</p>
+                    <p>Age: ${currentUser.age}</p>
+                </div>
+                <button id="logoutBtn" class="btn-logout" onclick="logout()">Logout</button>
+            `;
+        }
+
+        function logout() {
+            if (confirm(CONFIG.MESSAGES.LOGOUT_CONFIRM)) {
+                // Stop any running processes
+                if (isTimerRunning) {
+                    pauseTimer();
+                }
+                if (detectionRunning) {
+                    stopCamera();
+                }
+
+                // Clear user data
+                localStorage.removeItem(CONFIG.STORAGE.USER_KEY);
+                currentUser = null;
+
+                console.log('User logged out, redirecting to login');
+
+                // Redirect to login page
+                window.location.href = 'index.html';
+            }
+        }
+
+        // ========== ANALYTICS ==========
+        function loadAnalyticsReports() {
+            const analyticsContent = document.getElementById('analyticsContent');
+            const clearBtn = document.querySelector('.analytics-clear-btn');
+            const emptyState = document.querySelector('.analytics-empty');
+            const savedReports = document.getElementById('savedReports');
+
+            if (!analyticsContent) return;
+
+            try {
+                const reports = JSON.parse(localStorage.getItem(CONFIG.STORAGE.REPORTS_KEY) || '[]');
+
+                if (reports.length === 0) {
+                    if (emptyState) emptyState.style.display = 'block';
+                    if (savedReports) savedReports.style.display = 'none';
+                    if (clearBtn) clearBtn.style.display = 'none';
+                    return;
+                }
+
+                if (emptyState) emptyState.style.display = 'none';
+                if (savedReports) savedReports.style.display = 'block';
+                if (clearBtn) clearBtn.style.display = 'block';
+
+                if (savedReports) {
+                    savedReports.innerHTML = '';
+                    reports.forEach((report) => {
+                        const reportElement = createReportElement(report);
+                        savedReports.appendChild(reportElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+            }
+        }
+
+        function createReportElement(report) {
+            const reportDiv = document.createElement('div');
+            reportDiv.className = 'analytics-report';
+            reportDiv.onclick = () => showReportDetails(report);
+
+            const category = CONFIG.ANALYTICS.REPORT_CATEGORIES[report.assessmentCategory] || { color: '#666', icon: '📊' };
+            const focusDisplay = report.focusPercentage !== null ? `${report.focusPercentage}%` : 'N/A';
+            const dateDisplay = new Date(report.timestamp).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            reportDiv.style.borderLeftColor = category.color;
+            reportDiv.style.borderLeftWidth = '4px';
+
+            reportDiv.innerHTML = `
+                <div class="report-header">
+                    <div class="report-title" style="color: ${category.color};">
+                        ${category.icon} Session ${report.sessionId}
+                    </div>
+                    <div class="report-focus-score" style="color: ${category.color};">
+                        ${focusDisplay}
+                    </div>
+                </div>
+                <div class="report-details">
+                    <div class="report-date">${dateDisplay}</div>
+                    <div class="report-duration">${report.duration}min</div>
+                </div>
+            `;
+
+            return reportDiv;
+        }
+
+        function showReportDetails(report) {
+            const modal = document.getElementById('reportModal');
+            const title = document.getElementById('reportTitle');
+            const details = document.getElementById('reportDetails');
+
+            if (!modal || !title || !details) return;
+
+            const category = CONFIG.ANALYTICS.REPORT_CATEGORIES[report.assessmentCategory] || { color: '#666', icon: '📊' };
+            title.innerHTML = `${category.icon} Session ${report.sessionId} Details`;
+
+            const focusDisplay = report.focusPercentage !== null ? `${report.focusPercentage}%` : 'No data';
+
+            details.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div>
+                        <h4 style="color: ${category.color};">Overview</h4>
+                        <p><strong>Date:</strong> ${new Date(report.timestamp).toLocaleString()}</p>
+                        <p><strong>Duration:</strong> ${report.duration} minutes</p>
+                        <p><strong>Status:</strong> ${report.completed ? 'Completed' : 'Incomplete'}</p>
+                        <p><strong>Assessment:</strong> ${report.assessment}</p>
+                    </div>
+                    <div>
+                        <h4 style="color: ${category.color};">Metrics</h4>
+                        <p><strong>Focus Score:</strong> ${focusDisplay}</p>
+                        <p><strong>Total Frames:</strong> ${report.totalFrames || 'N/A'}</p>
+                        <p><strong>Focused Frames:</strong> ${report.focusedFrames || 0}</p>
+                        <p><strong>MediaPipe Active:</strong> ${report.detectorMetrics?.mediaPipeActive ? 'Yes' : 'No'}</p>
+                    </div>
+                </div>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+        function clearAnalytics() {
+            if (confirm('Clear all reports?')) {
+                localStorage.removeItem(CONFIG.STORAGE.REPORTS_KEY);
+                loadAnalyticsReports();
+            }
+        }
+
+        // ========== TASK MANAGEMENT ==========
+        function setMinDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const taskDateInput = document.getElementById('taskDate');
+            if (taskDateInput) {
+                taskDateInput.setAttribute('min', today);
+            }
+        }
+
+        function openTaskModal() {
+            document.getElementById('taskModal').style.display = 'flex';
+            document.getElementById('taskName').focus();
+        }
+
+        function addTask() {
+            const taskName = document.getElementById('taskName').value.trim();
+            const taskDate = document.getElementById('taskDate').value;
+
+            if (!taskName || !taskDate) {
+                alert(CONFIG.MESSAGES.TASK_INCOMPLETE);
+                return;
+            }
+
+            const task = {
+                name: taskName,
+                date: taskDate,
+                id: 'TASK' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                userId: currentUser.id,
+                createdAt: new Date().toISOString()
+            };
+
+            let tasks = JSON.parse(localStorage.getItem(CONFIG.STORAGE.TASKS_KEY) || '[]');
+            tasks.push(task);
+            tasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+            localStorage.setItem(CONFIG.STORAGE.TASKS_KEY, JSON.stringify(tasks));
+
+            document.getElementById('taskName').value = '';
+            document.getElementById('taskDate').value = '';
+            closeModal('taskModal');
+            loadTasks();
+        }
+
+        function loadTasks() {
+            const taskList = document.getElementById('task-list');
+            if (!taskList) return;
+
+            taskList.innerHTML = '';
+            let tasks = JSON.parse(localStorage.getItem(CONFIG.STORAGE.TASKS_KEY) || '[]');
+            const userTasks = tasks.filter(task => task.userId === currentUser.id);
+            userTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            userTasks.forEach(task => {
+                const li = document.createElement('li');
+                const isOverdue = new Date(task.date) < new Date();
+
+                li.innerHTML = `
+                    <div class="task-info" style="${isOverdue ? 'opacity: 0.7;' : ''}">
+                        <div class="task-name" style="${isOverdue ? 'text-decoration: line-through;' : ''}">${task.name}</div>
+                        <div class="task-date" style="color: ${isOverdue ? '#ff6b6b' : 'inherit'};">${formatDate(task.date)}</div>
+                    </div>
+                    <button class="btn-remove" onclick="removeTask('${task.id}')" title="Remove Task">✖</button>
+                `;
+                taskList.appendChild(li);
+            });
+
+            if (userTasks.length === 0) {
+                taskList.innerHTML = '<li style="text-align: center; opacity: 0.7; padding: 20px;">No tasks yet. Add your first task!</li>';
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            if (date.toDateString() === today.toDateString()) {
+                return 'Today';
+            } else if (date.toDateString() === tomorrow.toDateString()) {
+                return 'Tomorrow';
+            } else {
+                return date.toLocaleDateString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        }
+
+        function removeTask(taskId) {
+            if (confirm(CONFIG.MESSAGES.TASK_CONFIRM_DELETE)) {
+                let tasks = JSON.parse(localStorage.getItem(CONFIG.STORAGE.TASKS_KEY) || '[]');
+                tasks = tasks.filter(t => t.id !== taskId);
+                localStorage.setItem(CONFIG.STORAGE.TASKS_KEY, JSON.stringify(tasks));
+                loadTasks();
+            }
+        }
+
+        // ========== THEME FUNCTIONS ==========
+        function changeTheme(element) {
+            document.querySelectorAll('.theme-option').forEach(opt => opt.classList.remove('active'));
+            element.classList.add('active');
+
+            const theme = element.dataset.theme;
+            document.body.className = theme;
+            localStorage.setItem(CONFIG.STORAGE.THEME_KEY, theme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem(CONFIG.STORAGE.THEME_KEY) || 'theme-default';
+            const option = document.querySelector(`[data-theme="${savedTheme}"]`);
+            if (option) {
+                changeTheme(option);
+            }
+        }
+
+// ========== CONFIGURATION ==========
+const GEMINI_CONFIG = {
+    API_KEY: 'AIzaSyC6eNj05xtNvrm9Y_qWP4NDOPlt3p0aLOw', // Replace with your actual API key
+    API_URL: 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent',
+    MAX_TOKENS: 2048,
+    TEMPERATURE: 0.7
+};
+
+// Web Search Configuration
+const SEARCH_CONFIG = {
+    // Using DuckDuckGo Instant Answer API (free, no key required)
+    DUCKDUCKGO_API: 'https://api.duckduckgo.com/',
+    // Fallback search engines
+    SEARCH_ENGINES: [
+        'https://api.duckduckgo.com/',
+        // Add more search APIs as needed
+    ]
+};
+
+// ========== UTILITY FUNCTIONS ==========
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+    }
+}
+
+function updateSystemStatus(status, color = '#4CAF50') {
+    const indicator = document.getElementById('statusIndicator');
+    const text = document.getElementById('statusText');
+    if (indicator) indicator.style.background = color;
+    if (text) text.textContent = status;
+}
+
+function initializeSessionCounter() {
+    // Note: Using in-memory storage instead of localStorage for artifact compatibility
+    if (typeof window.sessionCounter === 'undefined') {
+        window.sessionCounter = 0;
+    }
+}
+
+let uploadedContent = '';
+let professorMemory = new Map();
+let conversationHistory = [];
+
+// ========== WEB SEARCH FUNCTIONS ==========
+async function performWebSearch(query) {
+    try {
+        // Try multiple search approaches
+        const searchMethods = [
+            () => searchWithJSONAPI(query),
+            () => searchWithWikipedia(query),
+            () => generateEnhancedFallback(query)
+        ];
+        
+        for (const searchMethod of searchMethods) {
+            try {
+                const results = await searchMethod();
+                if (results && results.length > 0) {
+                    return results;
+                }
+            } catch (error) {
+                console.log(`Search method failed, trying next...`, error);
+                continue;
+            }
+        }
+        
+        // Final fallback
+        return generateEnhancedFallback(query);
+        
+    } catch (error) {
+        console.error('All search methods failed:', error);
+        return generateEnhancedFallback(query);
+    }
+}
+
+async function searchWithJSONAPI(query) {
+    // Try DuckDuckGo Instant Answer API (JSON format)
+    const apiUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_redirect=1&no_html=1&skip_disambig=1`;
+    
+    const response = await fetch(apiUrl);
+    if (!response.ok) throw new Error('JSON API failed');
+    
+    const data = await response.json();
+    const results = [];
+    
+    // Extract abstract
+    if (data.Abstract) {
+        results.push({
+            title: data.Heading || query,
+            snippet: data.Abstract,
+            source: data.AbstractSource || 'DuckDuckGo'
+        });
+    }
+    
+    // Extract related topics
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+        data.RelatedTopics.slice(0, 3).forEach(topic => {
+            if (topic.Text) {
+                results.push({
+                    title: topic.FirstURL ? topic.FirstURL.split('/').pop() : 'Related Topic',
+                    snippet: topic.Text,
+                    source: 'DuckDuckGo Related'
+                });
+            }
+        });
+    }
+    
+    return results;
+}
+
+async function searchWithWikipedia(query) {
+    // Wikipedia API search
+    const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`;
+    
+    const response = await fetch(wikiUrl);
+    if (!response.ok) throw new Error('Wikipedia API failed');
+    
+    const data = await response.json();
+    
+    return [{
+        title: data.title || query,
+        snippet: data.extract || `Information about ${query}`,
+        source: 'Wikipedia'
+    }];
+}
+
+function generateEnhancedFallback(query) {
+    const lowerQuery = query.toLowerCase();
+    const results = [];
+    
+    // Enhanced knowledge base for common topics
+    const knowledgeBase = {
+        'plants': {
+            title: "Plant Biology and Botany",
+            snippet: "Plants are photosynthetic eukaryotic organisms that form the kingdom Plantae. They produce oxygen, provide food, medicine, and materials. Key processes include photosynthesis, cellular respiration, and reproduction through seeds, spores, or vegetative methods.",
+            details: [
+                "Plant Classification: Flowering plants (angiosperms), conifers (gymnosperms), ferns, mosses, and algae",
+                "Photosynthesis: Converting sunlight, CO2, and water into glucose and oxygen using chlorophyll",
+                "Plant Structures: Roots (absorption), stems (support/transport), leaves (photosynthesis), flowers (reproduction)",
+                "Economic Importance: Food crops, timber, medicines, oxygen production, carbon sequestration"
+            ]
+        },
+        'artificial intelligence': {
+            title: "Artificial Intelligence and Machine Learning",
+            snippet: "AI refers to computer systems that can perform tasks typically requiring human intelligence. This includes machine learning, neural networks, natural language processing, computer vision, and robotics.",
+            details: [
+                "Machine Learning: Algorithms that improve through experience and data",
+                "Deep Learning: Neural networks with multiple layers mimicking brain structure",
+                "Applications: Healthcare diagnostics, autonomous vehicles, language translation, recommendation systems",
+                "Current Trends: Large language models, computer vision, robotics, ethical AI development"
+            ]
+        },
+        'technology': {
+            title: "Modern Technology Trends",
+            snippet: "Technology encompasses tools, systems, and methods used to solve problems and improve human life. Current trends include AI, cloud computing, IoT, blockchain, and sustainable tech.",
+            details: [
+                "Emerging Technologies: Quantum computing, 5G networks, augmented reality, biotechnology",
+                "Digital Transformation: Cloud services, remote work tools, digital payments, e-commerce",
+                "Sustainability: Renewable energy, electric vehicles, green computing, circular economy",
+                "Social Impact: Digital divide, privacy concerns, job automation, cyber security"
+            ]
+        },
+        'science': {
+            title: "Scientific Method and Research",
+            snippet: "Science is the systematic study of the natural world through observation, experimentation, and analysis. It encompasses physics, chemistry, biology, earth sciences, and interdisciplinary fields.",
+            details: [
+                "Scientific Method: Hypothesis formation, experimental design, data analysis, peer review",
+                "Major Fields: Physics (matter/energy), Chemistry (molecular interactions), Biology (living systems)",
+                "Current Research: Climate science, medical research, space exploration, quantum physics",
+                "Applications: Medicine, technology development, environmental protection, engineering"
+            ]
+        },
+        'education': {
+            title: "Modern Education and Learning",
+            snippet: "Education involves the process of facilitating learning and knowledge acquisition. Modern education incorporates digital tools, personalized learning, and evidence-based teaching methods.",
+            details: [
+                "Learning Methods: Active learning, collaborative learning, problem-based learning, online education",
+                "Educational Technology: Learning management systems, adaptive learning, virtual reality, AI tutoring",
+                "Pedagogy: Student-centered learning, differentiated instruction, assessment strategies",
+                "Global Trends: Lifelong learning, skill-based education, digital literacy, inclusive education"
+            ]
+        }
+    };
+    
+    // Find matching topics
+    let matchedTopic = null;
+    for (const [key, value] of Object.entries(knowledgeBase)) {
+        if (lowerQuery.includes(key) || key.includes(lowerQuery)) {
+            matchedTopic = value;
+            break;
+        }
+    }
+    
+    if (matchedTopic) {
+        results.push({
+            title: matchedTopic.title,
+            snippet: matchedTopic.snippet,
+            source: "Educational Knowledge Base"
+        });
+        
+        // Add detailed information as separate results
+        matchedTopic.details.forEach((detail, index) => {
+            results.push({
+                title: `${matchedTopic.title} - Detail ${index + 1}`,
+                snippet: detail,
+                source: "Detailed Information"
+            });
+        });
+    } else {
+        // Generic fallback with intelligent suggestions
+        results.push({
+            title: `Comprehensive Information about: ${query}`,
+            snippet: `${query} is a topic that encompasses multiple aspects and applications. This subject involves various concepts, methodologies, and practical applications that are studied and researched across different fields.`,
+            source: "General Knowledge"
+        });
+        
+        results.push({
+            title: "Learning Resources",
+            snippet: `To learn more about ${query}, consider exploring academic sources, educational websites, research papers, and practical applications in the field.`,
+            source: "Study Guidance"
+        });
+    }
+    
+    return results;
+}
+
+// ========== GEMINI AI INTEGRATION ==========
+async function callGeminiAPI(prompt, context = '', searchResults = null) {
+    if (!GEMINI_CONFIG.API_KEY || GEMINI_CONFIG.API_KEY === 'YOUR_GEMINI_API_KEY_HERE') {
+        throw new Error('Please set your Gemini API key in the GEMINI_CONFIG object');
+    }
+
+    let fullPrompt = prompt;
+    
+    if (searchResults && searchResults.length > 0) {
+        // Create a prompt with search results
+        const searchContext = searchResults.map(result => 
+            `Title: ${result.title}\nContent: ${result.snippet}\nSource: ${result.source}`
+        ).join('\n\n');
+        
+        fullPrompt = `You are an AI assistant providing information based on current search results. Use the following search results to provide a comprehensive, educational answer to the user's question.
+
+Search Results:
+${searchContext}
+
+Guidelines:
+- Synthesize information from the search results
+- Provide a clear, educational response
+- Use HTML formatting for better readability
+- Include relevant examples and explanations
+- Mention that the information is based on current search results
+- Be thorough but accessible
+
+User Question: ${prompt}
+
+Please provide a detailed, well-structured response based on the search results above.`;
+    } else if (context) {
+        fullPrompt = `Context: ${context}\n\nUser: ${prompt}`;
+    }
+    
+    const requestBody = {
+        contents: [{
+            parts: [{
+                text: fullPrompt
+            }]
+        }],
+        generationConfig: {
+            temperature: searchResults ? 0.3 : GEMINI_CONFIG.TEMPERATURE,
+            maxOutputTokens: GEMINI_CONFIG.MAX_TOKENS
+        }
+    };
+
+    try {
+        const response = await fetch(`${GEMINI_CONFIG.API_URL}?key=${GEMINI_CONFIG.API_KEY}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`API Error: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const data = await response.json();
+        return data.candidates[0].content.parts[0].text;
+    } catch (error) {
+        console.error('Gemini API Error:', error);
+        throw error;
+    }
+}
+
+// Bot Professor Functions
+function initBotProfessor() {
+    console.log('Initializing Enhanced Bot Professor with Gemini AI...');
+
+    const fileInput = document.getElementById('professorFileInput');
+    const uploadBtn = document.getElementById('uploadFileBtn');
+    const askBtn = document.getElementById('askProfessor');
+    const resetBtn = document.getElementById('resetProfessor');
+    const questionTextarea = document.getElementById('professorQuestion');
+
+    if (!fileInput || !uploadBtn || !askBtn || !resetBtn || !questionTextarea) {
+        console.warn('Bot Professor elements not found - feature disabled');
+        return;
+    }
+
+    // File upload handling
+    uploadBtn.addEventListener('click', () => {
+        console.log('Upload button clicked');
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', handleFileUpload);
+
+    // Q&A handling
+    askBtn.addEventListener('click', handleQuestion);
+    questionTextarea.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+            handleQuestion();
+        }
+    });
+
+    // Reset functionality
+    resetBtn.addEventListener('click', resetProfessor);
+
+    // --- 🔹 Popup Logic ---
+    const popup = document.getElementById("professorPopup");
+    const openBtn = document.getElementById("openProfessorPopup");
+    const closeBtn = document.querySelector(".close-popup");
+
+    if (popup && openBtn && closeBtn) {
+        // Open popup
+        openBtn.addEventListener("click", () => {
+            popup.style.display = "block";
+        });
+
+        // Close popup
+        closeBtn.addEventListener("click", () => {
+            popup.style.display = "none";
+        });
+
+        // Close on outside click
+        window.addEventListener("click", (event) => {
+            if (event.target === popup) {
+                popup.style.display = "none";
+            }
+        });
+    } else {
+        console.warn("Popup elements not found.");
+    }
+
+    updateProfessorStatus('🤖 Enhanced AI Professor ready! Upload a file or ask me anything.');
+    console.log('Enhanced Bot Professor initialized successfully');
+}
+
+async function handleFileUpload(event) {
+    console.log('File upload triggered');
+    const file = event.target.files[0];
+
+    if (!file) {
+        console.log('No file selected');
+        return;
+    }
+
+    if (!file.name.endsWith('.txt')) {
+        updateFileStatus('Please upload a .txt file', 'error');
+        return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) { // 5MB limit (increased for AI processing)
+        updateFileStatus('File too large. Please upload a file smaller than 5MB', 'error');
+        return;
+    }
+
+    updateFileStatus('Reading file...', 'loading');
+    updateProfessorStatus('🧠 AI is analyzing your document...');
+
+    const reader = new FileReader();
+    reader.onload = async function (e) {
+        try {
+            uploadedContent = e.target.result;
+            console.log('File loaded, content length:', uploadedContent.length);
+            
+            // Generate AI-powered summary
+            await generateAISummary(uploadedContent);
+            updateFileStatus(`✅ Loaded: ${file.name} (${Math.round(file.size / 1024)} KB)`, 'success');
+            updateProfessorStatus('🎓 Document analyzed! I understand your content. Ask me anything!');
+        } catch (error) {
+            console.error('File processing error:', error);
+            updateFileStatus('❌ Error processing file', 'error');
+            updateProfessorStatus('Error processing your file. Please try again.');
+        }
+    };
+
+    reader.onerror = function () {
+        updateFileStatus('❌ Error reading file', 'error');
+        updateProfessorStatus('Could not read the file. Please try again.');
+    };
+
+    reader.readAsText(file);
+}
+
+async function generateAISummary(content) {
+    if (!content || content.trim().length === 0) return;
+
+    try {
+        const prompt = `You are an expert document analyzer. Please analyze the following document and provide:
+1. A comprehensive summary (2-3 sentences)
+2. Key topics and themes
+3. Important concepts or terms
+4. Learning objectives someone might have with this content
+
+Document content:
+${content.substring(0, 4000)}${content.length > 4000 ? '...[truncated]' : ''}
+
+Please format your response in HTML with appropriate headings and structure.`;
+
+        const aiResponse = await callGeminiAPI(prompt);
+        
+        const summarySection = document.getElementById('contentSummary');
+        const summaryText = document.getElementById('summaryText');
+
+        if (summarySection && summaryText) {
+            summaryText.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                    <h3>🤖 AI Analysis Complete</h3>
+                </div>
+                ${aiResponse}
+            `;
+            summarySection.style.display = 'block';
+        }
+    } catch (error) {
+        console.error('AI Summary generation failed:', error);
+        // Fallback to original summary generation
+        generateFallbackSummary(content);
+    }
+}
+
+function generateFallbackSummary(content) {
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    const words = content.toLowerCase().match(/\b\w{4,}\b/g) || [];
+
+    const wordCount = {};
+    words.forEach(word => {
+        wordCount[word] = (wordCount[word] || 0) + 1;
+    });
+
+    const keyTerms = Object.entries(wordCount)
+        .sort(([, a], [, b]) => b - a)
+        .slice(0, 5)
+        .map(([word]) => word);
+
+    const summary = `
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <h3>📊 Basic Analysis (Fallback)</h3>
+        </div>
+        <strong>📈 Document Stats:</strong><br>
+        • Length: ${content.length} characters, ${sentences.length} sentences<br>
+        • Key terms: ${keyTerms.join(', ')}<br>
+        • Main topics: ${identifyMainTopics(content)}<br><br>
+        <strong>💡 Quick Summary:</strong><br>
+        ${generateQuickSummary(sentences)}
+        <p><em>💡 For AI-powered analysis, please ensure your Gemini API key is configured.</em></p>
+    `;
+
+    const summarySection = document.getElementById('contentSummary');
+    const summaryText = document.getElementById('summaryText');
+
+    if (summarySection && summaryText) {
+        summaryText.innerHTML = summary;
+        summarySection.style.display = 'block';
+    }
+}
+
+function identifyMainTopics(content) {
+    const topics = [];
+    const lowerContent = content.toLowerCase();
+
+    const topicPatterns = {
+        'Science': /\b(experiment|hypothesis|research|study|data|analysis|theory|method)\b/g,
+        'Technology': /\b(software|computer|program|algorithm|code|system|digital|internet)\b/g,
+        'History': /\b(war|century|historical|ancient|revolution|empire|era|period)\b/g,
+        'Education': /\b(learn|teach|student|school|university|education|academic|knowledge)\b/g,
+        'Business': /\b(company|market|business|profit|strategy|management|finance|economy)\b/g,
+        'Health': /\b(health|medical|patient|treatment|disease|medicine|therapy|wellness)\b/g,
+        'Literature': /\b(story|novel|poem|character|author|book|narrative|writing)\b/g
+    };
+
+    Object.entries(topicPatterns).forEach(([topic, pattern]) => {
+        if ((lowerContent.match(pattern) || []).length >= 3) {
+            topics.push(topic);
+        }
+    });
+
+    return topics.length > 0 ? topics.join(', ') : 'General content';
+}
+
+function generateQuickSummary(sentences) {
+    if (sentences.length === 0) return 'No clear sentences found.';
+
+    const importantSentences = sentences
+        .filter(s => s.length > 50 && s.length < 200)
+        .slice(0, 3);
+
+    return importantSentences.length > 0
+        ? importantSentences.join('. ') + '.'
+        : 'Content contains primarily short statements or data.';
+}
+
+async function handleQuestion() {
+    const questionTextarea = document.getElementById('professorQuestion');
+    const question = questionTextarea.value.trim();
+
+    if (!question) {
+        updateProfessorStatus('Please ask me a question!');
+        return;
+    }
+
+    updateProfessorStatus('🧠 AI is thinking... This may take a moment.');
+    showProfessorLoading(true);
+
+    try {
+        // Add to conversation history
+        conversationHistory.push({ role: 'user', content: question });
+        
+        const response = await generateAIResponse(question);
+        
+        // Add AI response to history
+        conversationHistory.push({ role: 'assistant', content: response });
+        
+        displayResponse(response);
+        questionTextarea.value = '';
+        updateProfessorStatus('✨ What else would you like to explore?');
+        
+    } catch (error) {
+        console.error('Question handling error:', error);
+        const fallbackResponse = generateFallbackResponse(question);
+        displayResponse(fallbackResponse);
+        updateProfessorStatus('⚠️ Using basic mode. Check your API key for full AI features.');
+    } finally {
+        showProfessorLoading(false);
+    }
+}
+
+async function generateAIResponse(question) {
+    const lowerQuestion = question.toLowerCase();
+
+    // Check if question starts with # for direct internet search
+    if (question.startsWith('#')) {
+        const searchQuery = question.substring(1).trim(); // Remove # and trim
+        
+        if (!searchQuery) {
+            return `<h4>❓ Invalid Search Query</h4>
+                   <p>Please provide a question after the # symbol.</p>
+                   <p><strong>Example:</strong> #latest developments in artificial intelligence</p>`;
+        }
+
+        // Perform actual web search and process with AI
+        try {
+            updateProfessorStatus('🔍 Searching multiple sources for information...');
+            
+            // Step 1: Try multiple search methods
+            const searchResults = await performWebSearch(searchQuery);
+            
+            if (searchResults && searchResults.length > 0) {
+                updateProfessorStatus('🧠 AI is analyzing found information...');
+                
+                // Step 2: Process results with Gemini AI
+                const internetResponse = await callGeminiAPI(searchQuery, '', searchResults);
+                
+                // Format the response with search results info
+                const searchSummary = searchResults.slice(0, 3).map((result, index) => 
+                    `<li><strong>${result.title}</strong><br><span style="color: #666; font-size: 0.9em;">${result.snippet.substring(0, 120)}... (${result.source})</span></li>`
+                ).join('');
+                
+                return `
+                    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <h3>🌐 Information Search Results</h3>
+                        <p style="margin: 5px 0; opacity: 0.9;">Query: "${searchQuery}"</p>
+                        <p style="margin: 5px 0; opacity: 0.8; font-size: 0.9em;">✅ Found ${searchResults.length} relevant sources</p>
+                    </div>
+                    
+                    ${internetResponse}
+                    
+                    <div style="background: #f8f9fa; padding: 12px; border-radius: 5px; margin-top: 15px; border-left: 4px solid #667eea;">
+                        <strong>📊 Information Sources:</strong>
+                        <ol style="margin: 8px 0; padding-left: 20px;">
+                            ${searchSummary}
+                        </ol>
+                    </div>
+                    
+                    <div style="background: #e8f4fd; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9em;">
+                        <strong>💡 Search Features:</strong><br>
+                        • <strong>#topic</strong> - Get comprehensive information<br>
+                        • <strong>#latest news</strong> - Current events and updates<br>
+                        • <strong>#how to</strong> - Step-by-step guides and tutorials
+                    </div>
+                `;
+            } else {
+                // Enhanced fallback when no results found
+                return generateNoResultsFallback(searchQuery);
+            }
+        } catch (error) {
+            console.error('Search failed:', error);
+            
+            // Enhanced error handling with specific solutions
+            return generateSearchErrorFallback(searchQuery, error);
+        }
+    }
+
+    // Build context from conversation history and uploaded content (for regular questions)
+    let context = '';
+    
+    if (uploadedContent) {
+        context += `Document Context: ${uploadedContent.substring(0, 2000)}${uploadedContent.length > 2000 ? '...' : ''}\n\n`;
+    }
+
+    if (conversationHistory.length > 0) {
+        const recentHistory = conversationHistory.slice(-4); // Last 4 exchanges
+        context += `Recent Conversation:\n${recentHistory.map(h => `${h.role}: ${h.content}`).join('\n')}\n\n`;
+    }
+
+    // Check for topic teaching request (without # prefix)
+    const topicMatch = question.match(/\bteach me about (\w+)|what is (\w+)|explain (\w+)/i);
+    if (topicMatch) {
+        const topic = topicMatch[1] || topicMatch[2] || topicMatch[3];
+        const prompt = `You are an expert teacher. Create a comprehensive, engaging lesson about "${topic}". 
+        Structure it with clear headings, examples, and practical applications. 
+        Make it educational but fun and easy to understand. Use HTML formatting with proper headings and lists.
+        
+        Topic: ${topic}
+        User Question: ${question}`;
+        
+        return await callGeminiAPI(prompt, context);
+    }
+
+    // General AI-powered response (local knowledge)
+    const prompt = `You are a friendly, knowledgeable AI professor. Answer the user's question in a helpful, educational manner.
+    
+    Guidelines:
+    - Be conversational but informative
+    - Use HTML formatting with headings and lists where appropriate
+    - If discussing uploaded content, reference it specifically
+    - Provide examples and practical insights
+    - Keep responses engaging and educational
+    - Add relevant emojis to make it friendly
+    - Use your existing knowledge base (don't search the internet unless # is used)
+    
+    User Question: ${question}`;
+
+    return await callGeminiAPI(prompt, context);
+}
+
+function generateNoResultsFallback(searchQuery) {
+    return `
+        <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <h3>🎓 Educational Response</h3>
+            <p style="margin: 5px 0; opacity: 0.9;">Topic: "${searchQuery}"</p>
+        </div>
+        
+        <h4>🧠 Comprehensive Information about "${searchQuery}":</h4>
+        ${generateDetailedFallbackContent(searchQuery)}
+        
+        <div style="background: #d1ecf1; padding: 10px; border-radius: 5px; margin-top: 15px;">
+            <strong>📚 Learning Mode:</strong> This response draws from educational knowledge bases and training data.
+            The information is comprehensive and educational, covering key concepts and applications.
+        </div>
+    `;
+}
+
+function generateSearchErrorFallback(searchQuery, error) {
+    return `
+        <div style="background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%); color: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+            <h3>🎯 Smart Response System</h3>
+            <p style="margin: 5px 0; opacity: 0.9;">Query: "${searchQuery}"</p>
+        </div>
+        
+        <h4>💡 Here's what I know about "${searchQuery}":</h4>
+        ${generateDetailedFallbackContent(searchQuery)}
+        
+        <div style="background: #fff3cd; padding: 12px; border-radius: 5px; margin-top: 15px;">
+            <strong>🔧 Technical Note:</strong> The system attempted multiple search methods but fell back to educational mode.<br>
+            <strong>Reason:</strong> ${error.message || 'Network connectivity or API limitations'}<br>
+            <strong>Solution:</strong> The response above uses comprehensive educational knowledge instead.
+        </div>
+        
+        <div style="background: #e8f4fd; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 0.9em;">
+            <strong>💡 Alternative:</strong> Try asking without the # symbol for detailed educational content, or rephrase your query more specifically.
+        </div>
+    `;
+}
+
+function generateDetailedFallbackContent(query) {
+    const results = generateEnhancedFallback(query);
+    
+    if (results && results.length > 0) {
+        let content = `<p><strong>${results[0].title}</strong></p>`;
+        content += `<p>${results[0].snippet}</p>`;
+        
+        if (results.length > 1) {
+            content += `<h5>📋 Key Information:</h5><ul>`;
+            results.slice(1).forEach(result => {
+                content += `<li><strong>${result.title.replace(results[0].title + ' - ', '')}:</strong> ${result.snippet}</li>`;
+            });
+            content += `</ul>`;
+        }
+        
+        return content;
+    }
+    
+    return `<p>This is a broad topic with many interesting aspects to explore. I can provide educational information about various facets of "${query}" including its definition, applications, significance, and related concepts.</p>`;
+}
+
+function generateFallbackResponse(question) {
+    const lowerQuestion = question.toLowerCase();
+
+    // Check for topic teaching request (#topic)
+    const topicMatch = question.match(/#(\w+)/);
+    if (topicMatch) {
+        const topic = topicMatch[1];
+        return generateTopicLesson(topic);
+    }
+
+    // Context-aware responses based on uploaded content
+    if (uploadedContent) {
+        return generateContentBasedResponse(question, uploadedContent);
+    }
+
+    // General knowledge responses
+    return generateGeneralResponse(question);
+}
+
+function generateTopicLesson(topic) {
+    const lessons = {
+        javascript: {
+            content: `
+                <h4>🚀 JavaScript Fundamentals</h4>
+                <p><strong>What is JavaScript?</strong></p>
+                <p>JavaScript is a versatile programming language that makes websites interactive!</p>
+                
+                <p><strong>Key Concepts:</strong></p>
+                <ul>
+                    <li><strong>Variables:</strong> Store data (let, const, var)</li>
+                    <li><strong>Functions:</strong> Reusable code blocks</li>
+                    <li><strong>Objects:</strong> Data containers with properties</li>
+                    <li><strong>Events:</strong> User interactions (clicks, keyboard)</li>
+                </ul>
+                
+                <p><strong>Example:</strong></p>
+                <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; font-family: monospace;">
+                const greeting = "Hello World!";<br>console.log(greeting);
+                </div>
+                
+                <p>💡 <em>JavaScript runs in browsers and servers, making it incredibly powerful for web development!</em></p>
+                <p>🤖 <em>For more advanced JavaScript lessons, configure your Gemini API key!</em></p>
+            `
+        },
+        python: {
+            content: `
+                <h4>🐍 Python Programming Basics</h4>
+                <p><strong>Why Python?</strong></p>
+                <p>Python is beginner-friendly yet powerful - perfect for data science, web development, and AI!</p>
+                
+                <p><strong>Core Concepts:</strong></p>
+                <ul>
+                    <li><strong>Variables:</strong> No declaration needed!</li>
+                    <li><strong>Lists:</strong> [1, 2, 3, "hello"]</li>
+                    <li><strong>Dictionaries:</strong> {"key": "value"}</li>
+                    <li><strong>Functions:</strong> def my_function():</li>
+                </ul>
+                
+                <p><strong>Example:</strong></p>
+                <div style="background: #f4f4f4; padding: 10px; border-radius: 5px; font-family: monospace;">
+                def greet(name):<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;return f"Hello, {name}!"<br><br>
+                print(greet("World"))
+                </div>
+                
+                <p>🌟 <em>Python's simple syntax makes it perfect for beginners!</em></p>
+            `
+        },
+        ai: {
+            content: `
+                <h4>🤖 Artificial Intelligence Fundamentals</h4>
+                <p><strong>What is AI?</strong></p>
+                <p>AI enables machines to perform tasks that typically require human intelligence!</p>
+                
+                <p><strong>Key Areas:</strong></p>
+                <ul>
+                    <li><strong>Machine Learning:</strong> Learning from data</li>
+                    <li><strong>Natural Language Processing:</strong> Understanding text</li>
+                    <li><strong>Computer Vision:</strong> Interpreting images</li>
+                    <li><strong>Neural Networks:</strong> Brain-inspired computing</li>
+                </ul>
+                
+                <p><strong>Applications:</strong></p>
+                <p>🔍 Search engines, 🗣️ Voice assistants, 🚗 Self-driving cars, 🎯 Recommendation systems</p>
+                
+                <p>🚀 <em>AI is transforming every industry and creating new possibilities!</em></p>
+            `
+        }
+    };
+
+    const lesson = lessons[topic.toLowerCase()] || {
+        content: `
+            <h4>📖 ${topic.charAt(0).toUpperCase() + topic.slice(1)}</h4>
+            <p>I'd love to teach you about ${topic}! While I have basic information, my AI capabilities are enhanced with Gemini.</p>
+            
+            <p><strong>Basic Learning Approach:</strong></p>
+            <ul>
+                <li>🔍 Break the topic into smaller parts</li>
+                <li>📚 Look for key concepts and definitions</li>
+                <li>💡 Find examples and applications</li>
+                <li>🧠 Practice with exercises or questions</li>
+                <li>🔗 Connect it to what you already know</li>
+            </ul>
+            
+            <p>💭 <em>Upload a text file about ${topic} or configure Gemini API for comprehensive AI-powered lessons!</em></p>
+        `
+    };
+
+    return lesson.content;
+}
+
+function generateContentBasedResponse(question, content) {
+    const lowerQuestion = question.toLowerCase();
+
+    if (lowerQuestion.includes('summary') || lowerQuestion.includes('summarize')) {
+        const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+        return `<h4>📝 Document Summary</h4><p>${generateQuickSummary(sentences)}</p>
+                <p><em>💡 Configure Gemini API for AI-powered detailed summaries!</em></p>`;
+    }
+    else if (lowerQuestion.includes('main point') || lowerQuestion.includes('key point')) {
+        return `<h4>🎯 Key Points</h4><p>Based on your document, the main themes appear to be: ${identifyMainTopics(content)}</p>
+                <p><em>🤖 AI can provide much deeper insights - check your API configuration!</em></p>`;
+    }
+    else if (lowerQuestion.includes('length') || lowerQuestion.includes('how long')) {
+        const wordCount = content.split(/\s+/).length;
+        const charCount = content.length;
+        return `<h4>📊 Document Stats</h4><p>Your document contains ${wordCount} words and ${charCount} characters.</p>`;
+    }
+    else {
+        // Try to find relevant content sections
+        const sentences = content.split(/[.!?]+/);
+        const relevantSentences = sentences.filter(sentence => {
+            const words = lowerQuestion.split(/\s+/);
+            return words.some(word => word.length > 3 && sentence.toLowerCase().includes(word));
+        });
+
+        if (relevantSentences.length > 0) {
+            return `<h4>💡 From your document</h4><p>${relevantSentences.slice(0, 2).join('. ')}.</p>
+                    <p><em>🚀 AI can provide much more sophisticated analysis of your content!</em></p>`;
+        } else {
+            return `<h4>🤔 About your question</h4><p>I understand you're asking about "${question}". While I don't see direct references to this in your uploaded content, I'd be happy to help you explore this topic further!</p>
+                    <p><em>⭐ With Gemini AI, I could provide comprehensive answers even without direct content matches!</em></p>`;
+        }
+    }
+}
+
+function generateGeneralResponse(question) {
+    const lowerQuestion = question.toLowerCase();
+
+    // Handle # internet search in fallback mode
+    if (question.startsWith('#')) {
+        const searchQuery = question.substring(1).trim();
+        return `
+            <h4>🌐 Internet Search Request</h4>
+            <p><strong>Your search:</strong> "${searchQuery}"</p>
+            <p>🔧 <strong>Internet search requires Gemini API configuration.</strong></p>
+            <p>With the API key set up, I can provide you with current, up-to-date information from the internet!</p>
+            <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <strong>💡 How it works:</strong><br>
+                • Use <code>#</code> before any question for live internet results<br>
+                • Example: <code>#latest news about AI</code><br>
+                • Example: <code>#current weather in New York</code><br>
+                • Example: <code>#recent developments in space exploration</code>
+            </div>
+        `;
+    }
+
+    const responses = {
+        greetings: {
+            patterns: ['hello', 'hi', 'hey', 'good morning', 'good afternoon'],
+            response: `<h4>👋 Hello there!</h4>
+                      <p>Hello! I'm your AI-enhanced Bot Professor. I can analyze documents, answer questions, and even search the internet!</p>
+                      <div style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <strong>🌐 Internet Search Feature:</strong><br>
+                        Use <strong>#</strong> before your question to get current information from the internet!<br>
+                        Example: <strong>#latest AI developments</strong>
+                      </div>
+                      <p><em>🔧 Configure your Gemini API key for full capabilities.</em></p>`
+        },
+        learning: {
+            patterns: ['how to learn', 'study tips', 'learning'],
+            response: `<h4>📚 AI-Powered Learning Tips</h4>
+                      <p><strong>Effective Learning Strategies:</strong></p>
+                      <ul>
+                        <li>🎯 Break complex topics into smaller parts</li>
+                        <li>🧠 Practice active recall and testing</li>
+                        <li>⏰ Use spaced repetition</li>
+                        <li>👥 Teach others what you learn</li>
+                        <li>🔗 Make connections between concepts</li>
+                        <li>🤖 Use AI to get personalized explanations!</li>
+                        <li>🌐 Use <strong>#topic</strong> to get current information!</li>
+                      </ul>`
+        },
+        help: {
+            patterns: ['help', 'what can you do', 'how do you work'],
+            response: `<h4>🚀 Enhanced AI Capabilities</h4>
+                      <p>I'm your AI-powered learning companion! Here's what I can do:</p>
+                      <ul>
+                        <li>📄 Analyze uploaded text files with AI</li>
+                        <li>🧠 Generate intelligent summaries</li>
+                        <li>🎓 Teach topics with comprehensive lessons</li>
+                        <li>💬 Have natural conversations about any topic</li>
+                        <li>🔍 Answer complex questions with context awareness</li>
+                        <li>📊 Provide detailed document analysis</li>
+                        <li>🌐 <strong>Search the internet for current information!</strong></li>
+                      </ul>
+                      <div style="background: #f3e5f5; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <strong>🌐 Internet Search:</strong> Use <strong>#</strong> before any question<br>
+                        Examples:<br>
+                        • <code>#current events in technology</code><br>
+                        • <code>#latest scientific discoveries</code><br>
+                        • <code>#today's news about climate change</code>
+                      </div>
+                      <p><strong>🔑 API Key Required:</strong> Configure your Gemini API key for full AI features!</p>`
+        }
+    };
+
+    for (const [category, data] of Object.entries(responses)) {
+        if (data.patterns.some(pattern => lowerQuestion.includes(pattern))) {
+            return data.response;
+        }
+    }
+
+    return `<h4>🤔 Interesting Question!</h4>
+            <p>You asked: "${question}"</p>
+            <p>I'd love to help you explore this! Here are my capabilities:</p>
+            <ul>
+                <li>📄 Upload a text file for AI-powered content analysis</li>
+                <li>🎓 Ask me to teach you about any topic</li>
+                <li>💭 Ask me anything - I can discuss most topics!</li>
+                <li>🌐 <strong>Use # before your question for internet search!</strong></li>
+            </ul>
+            <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                <strong>🌐 Want current information?</strong><br>
+                Try: <code>#${question}</code> to search the internet!
+            </div>
+            <p><em>🚀 With Gemini AI configured, I can provide detailed, contextual responses to any question!</em></p>`;
+}
+
+function displayResponse(responseContent) {
+    const responseDiv = document.getElementById('professorResponse');
+    const contentDiv = document.getElementById('responseContent');
+
+    if (responseDiv && contentDiv) {
+        contentDiv.innerHTML = responseContent;
+        responseDiv.style.display = 'block';
+        responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+function resetProfessor() {
+    uploadedContent = '';
+    conversationHistory = [];
+    professorMemory.clear();
+    
+    // Hide elements
+    const summarySection = document.getElementById('contentSummary');
+    const responseDiv = document.getElementById('professorResponse');
+    
+    if (summarySection) summarySection.style.display = 'none';
+    if (responseDiv) responseDiv.style.display = 'none';
+    
+    // Clear input
+    const questionTextarea = document.getElementById('professorQuestion');
+    if (questionTextarea) questionTextarea.value = '';
+    
+    updateFileStatus('No file uploaded', 'default');
+    updateProfessorStatus('🔄 Reset complete! Upload a file or ask me anything.');
+    
+    console.log('Professor reset - memory cleared');
+}
+
+function showProfessorLoading(show) {
+    const loadingElement = document.getElementById('professorLoading');
+    if (loadingElement) {
+        loadingElement.style.display = show ? 'block' : 'none';
+    }
+}
+
+function updateProfessorStatus(message) {
+    const statusElement = document.getElementById('professorStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+    }
+}
+
+function updateFileStatus(message, type = 'default') {
+    const statusElement = document.getElementById('fileStatus');
+    if (statusElement) {
+        statusElement.textContent = message;
+        statusElement.className = `file-status ${type}`;
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initBotProfessor();
+});
+
+// Export for external use
+window.BotProfessor = {
+    init: initBotProfessor,
+    reset: resetProfessor,
+    setApiKey: (apiKey) => {
+        GEMINI_CONFIG.API_KEY = apiKey;
+        console.log('Gemini API key updated');
+    }
+};
+
+        function resetProfessor() {
+            uploadedContent = '';
+            professorMemory.clear();
+
+            const elements = {
+                fileInput: document.getElementById('professorFileInput'),
+                fileStatus: document.getElementById('fileStatus'),
+                summarySection: document.getElementById('contentSummary'),
+                questionTextarea: document.getElementById('professorQuestion'),
+                responseDiv: document.getElementById('professorResponse')
+            };
+
+            if (elements.fileInput) elements.fileInput.value = '';
+            if (elements.fileStatus) elements.fileStatus.textContent = '';
+            if (elements.summarySection) elements.summarySection.style.display = 'none';
+            if (elements.questionTextarea) elements.questionTextarea.value = '';
+            if (elements.responseDiv) elements.responseDiv.style.display = 'none';
+
+            updateProfessorStatus('Reset complete! Ready for a new adventure!');
+
+            // Add reset animation to robot
+            const robotContainer = document.querySelector('.robot-container');
+            if (robotContainer) {
+                robotContainer.style.animation = 'none';
+                setTimeout(() => {
+                    robotContainer.style.animation = 'robotHover 2.5s ease-in-out infinite';
+                }, 100);
+            }
+        }
+
+        function updateProfessorStatus(message) {
+            const statusElement = document.getElementById('professorStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+            }
+        }
+
+        function updateFileStatus(message, type = '') {
+            const statusElement = document.getElementById('fileStatus');
+            if (statusElement) {
+                statusElement.textContent = message;
+                statusElement.className = `file-status ${type}`;
+            }
+        }
+
+        function showProfessorLoading(isLoading) {
+            const character = document.querySelector('.professor-character');
+            if (character) {
+                if (isLoading) {
+                    character.classList.add('professor-loading');
+                } else {
+                    character.classList.remove('professor-loading');
+                }
+            }
+        }
+
+        // ========== INITIALIZATION ==========
+        function initDashboard() {
+            console.log('Initializing dashboard...');
+
+            checkAuth(); // This will now redirect if no user
+            loadTheme();
+            setMinDate();
+            loadTasks();
+            loadAnalyticsReports();
+            initializeSessionCounter();
+            initializeNotepad();
+            updateTimerDisplay();
+
+            // Initialize Bot Professor
+            initBotProfessor();
+
+            // Auto-save notepad every 30 seconds
+            setInterval(saveNotepadContent, 30000);
+
+            console.log('Dashboard initialized successfully');
+        }
+
+        // ========== KEYBOARD SHORTCUTS ==========
+        document.addEventListener('keydown', function (event) {
+            if (event.code === 'Space' && event.target.tagName !== 'INPUT' && event.target.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+                if (!isTimerRunning) {
+                    startTimer();
+                } else {
+                    pauseTimer();
+                }
+            }
+
+            if ((event.key === 'r' || event.key === 'R') && !isTimerRunning && event.target.tagName !== 'INPUT') {
+                resetTimer();
+            }
+
+            if (event.key === 'Escape') {
+                closeModal('taskModal');
+                closeModal('timerModal');
+                closeModal('reportModal');
+            }
+        });
+
+        // ========== LOADING AND INITIALIZATION ==========
+        let mediaPipeReady = false;
+
+        function updateLoadingProgress(progress, message) {
+            const loadingBar = document.getElementById('loadingBar');
+            const loadingMessage = document.getElementById('loadingMessage');
+
+            if (loadingBar) loadingBar.style.width = Math.min(100, progress) + '%';
+            if (message && loadingMessage) loadingMessage.textContent = message;
+        }
+
+        function checkMediaPipeLibraries() {
+            const required = ['FaceDetection', 'Camera'];
+            let loaded = 0;
+
+            required.forEach(lib => {
+                if (typeof window[lib] !== 'undefined') {
+                    loaded++;
+                }
+            });
+
+            const progress = 20 + (loaded / required.length) * 60;
+            updateLoadingProgress(progress, `MediaPipe libraries: ${loaded}/${required.length} loaded`);
+
+            if (loaded === required.length) {
+                mediaPipeReady = true;
+                setTimeout(startApp, 500);
+                return true;
+            }
+            return false;
+        }
+
+        function startApp() {
+            updateLoadingProgress(90, 'Starting application...');
+
+            setTimeout(() => {
+                updateLoadingProgress(100, 'Ready!');
+
+                setTimeout(() => {
+                    const loadingScreen = document.getElementById('loadingScreen');
+                    const dashboard = document.getElementById('dashboard');
+
+                    if (loadingScreen) {
+                        loadingScreen.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingScreen.style.display = 'none';
+                            if (dashboard) {
+                                dashboard.style.display = 'block';
+                                initDashboard();
+                            }
+                        }, 500);
+                    }
+                }, 1000);
+            }, 500);
+        }
+
+        // Start the loading process
+        updateLoadingProgress(10, 'Checking MediaPipe libraries...');
+
+        // Check MediaPipe availability every 200ms
+        const loadingInterval = setInterval(() => {
+            if (checkMediaPipeLibraries()) {
+                clearInterval(loadingInterval);
+            }
+        }, 200);
+
+        // Fallback: Continue after 15 seconds even if MediaPipe isn't fully loaded
+        setTimeout(() => {
+            if (!mediaPipeReady) {
+                console.warn('MediaPipe loading timeout - continuing with limited functionality');
+                clearInterval(loadingInterval);
+                updateLoadingProgress(100, 'Loaded with limited MediaPipe support');
+                startApp();
+            }
+        }, 15000);
+
+        // Update system status when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                if (typeof FaceDetection !== 'undefined') {
+                    updateSystemStatus('MediaPipe Ready', '#4CAF50');
+                } else {
+                    updateSystemStatus('Limited Mode', '#FF9800');
+                }
+            }, 3000);
+        });
+
+        // Monitor detection status
+        setInterval(() => {
+            if (detectionRunning) {
+                updateSystemStatus('Detecting...', '#FF9800');
+            } else if (typeof FaceDetection !== 'undefined') {
+                updateSystemStatus('MediaPipe Ready', '#4CAF50');
+            } else {
+                updateSystemStatus('System Ready', '#4CAF50');
+            }
+        }, 5000);
+    </script>
+</body>
+
+</html>
